@@ -25,5 +25,6 @@ int main(int argc, char **argv)
 	(void)argv;
 	btc.open_file("./data.csv", ',');
 	btc.process_input_file(argv[1], '|');
+
 	return (0);
 }

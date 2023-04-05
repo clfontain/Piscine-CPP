@@ -18,14 +18,14 @@ BitcoinExchange::~BitcoinExchange()
 
 BitcoinExchange::BitcoinExchange(const BitcoinExchange &cpy)
 {
-   (void)cpy;
+	this->data = cpy.data;
 }
 
 BitcoinExchange& BitcoinExchange::operator=(const BitcoinExchange &cpy)
 {
 	if (this != &cpy)
 	{
-	  
+		this->data = cpy.data;
 	}
 	return (*this);
 }
@@ -47,7 +47,7 @@ int BitcoinExchange::parse_range(double nbr)
 
 int BitcoinExchange::parse_double(std::string str)
 {
-	//std::cout << str << std::endl;
+	int count = 0;
 	for(size_t i = 0; i < strlen(str.c_str()); i++)
 	{
 		if (str[0] == '.'|| str[strlen(str.c_str()) - 1] == '.')
@@ -60,8 +60,14 @@ int BitcoinExchange::parse_double(std::string str)
 			std::cout << "Error: bad input\n";
 			return (1);
 		}	
+		if (str[i] == '.')
+			count++;
 	}
-	
+	if (count > 1)
+	{
+		std::cout << "Error: bad input\n";
+		return (1);
+	}		
 	return (0);	
 }
 
@@ -71,7 +77,12 @@ int BitcoinExchange::parse_date(std::string str)
 	{
 		std::cout << "Error: bad input => " << str <<std::endl;
 		return (1);
-	}	
+	}
+	else if (str < "2009-01-02")
+	{
+		std::cout << "Error: bad input => " << str <<std::endl;
+		return (1);
+	}
 	else
 		return (0);
 }
@@ -82,15 +93,11 @@ std::map<std::string, float>::iterator BitcoinExchange::find_closed(std::string 
 		return (--this->data.end());
 	return (data.lower_bound(date));
 }
-int BitcoinExchange::calcul_price(std::string date, float res)
+float BitcoinExchange::calcul_price(std::string date, float res)
 {
 	std::map<std::string, float>::iterator it;
-	//it = data.find(date);
-	//std::cout << it->first << std::endl;
-	std::cout << find_closed(date)->first << std::endl;
-	//std::cout << it->first << std::endl;
-	(void)res;
-	return (0);
+	it = find_closed(date);
+	return (it->second * res);
 }
 
 int BitcoinExchange::process_input_file(const char *path_file, char sep)
@@ -115,17 +122,18 @@ int BitcoinExchange::process_input_file(const char *path_file, char sep)
 			{
 				if (line[found - 1] != ' ' || line[found + 1] != ' ')
 				{
-					std::cout << "INVALID LINE FORMAT\n";
+					std::cout << "Error: bad input => " << line <<std::endl;
 					continue;
 				}	
 				line.erase(std::remove_if(line.begin(), line.end(), isspace), line.end());
 				date = line.substr(0, found - 1);
-				//std::cout << date << std::endl;
 				price = line.substr(found, strlen(line.c_str()) - found);
 				std::istringstream price2(price);
 				price2 >> res;
 				if (parse_date(date) == 0 && parse_double(price) == 0 && parse_range(res) == 0)
-					calcul_price(date, res);
+				{
+					std::cout << date << " => " << res << " = " << calcul_price(date, res) << "\n";
+				}	
 			}
 			else
 			{
@@ -134,6 +142,11 @@ int BitcoinExchange::process_input_file(const char *path_file, char sep)
 			//std::cout << line << std::endl;
 		}	
 	}
+	else
+	{
+		std::cerr << "Open failed\n";
+		return (1);
+	}	
 	return (0);
 }
 
@@ -144,15 +157,14 @@ int BitcoinExchange::open_file(const char *path_file, char sep)
 	std::string line, price, date;
 	size_t found;
 	float res = 0;
-	(void)res;
-	(void)sep;
-	(void)price;
-	(void)date;
 	if (file.is_open())
 	{
 		getline(file, line);
 		if (line != "date,exchange_rate")
+		{
 			std::cerr << "INVALID FIRST LINE\n";
+			return (1);
+		}	
 		while (getline(file, line))
 		{
 			found = line.find(sep, 0);
@@ -164,14 +176,16 @@ int BitcoinExchange::open_file(const char *path_file, char sep)
 				price = line.substr(found + 1, strlen(line.c_str()) - found + 1);
 				std::istringstream price2(price);
 				price2 >> res;
-				//data.insert(std::pair<std::string, float>(date, res));	
 				data[date] = res;
 			}
 		}	
 	}
-	else   
+	else
+	{
+		std::cerr << "No data.csv file\n";
 		return (1);
-	print_data();
+	}	
+	//print_data();
 	return (0);
 }
 

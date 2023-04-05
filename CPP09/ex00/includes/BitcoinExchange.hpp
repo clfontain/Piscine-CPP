@@ -28,10 +28,10 @@ class BitcoinExchange {
 		int parse_date(std::string str);
 		int parse_double(std::string str);
 		int parse_range(double nbr);
-		int calcul_price(std::string date, float res);
-		std::map<std::string, float, std::greater<std::string> >::iterator find_closed(std::string date);
+		float calcul_price(std::string date, float res);
+		std::map<std::string, float>::iterator find_closed(std::string date);
 	private:
-		std::map<std::string, float> data;
+		std::map<std::string, float, std::greater<std::string> > data;
 		regex_t regex_date;
 };
 

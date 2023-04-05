@@ -7,6 +7,7 @@ int main(int argc, char **argv)
 	if (argc == 1)
 		return (1);
 	bail.create_arg(argc, argv);
+	bail.create_list(argc, argv);
 	bail.process();
 	
 	return (0);

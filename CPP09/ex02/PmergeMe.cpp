@@ -22,19 +22,43 @@ PmergeMe &PmergeMe::operator=(const PmergeMe &cpy)
 }
 
 
-int	PmergeMe::process()
+int	PmergeMe::process_arg()
 {
 	int beg;
 	int end;
 	beg = 0;
 	end = arg.size();
+	chunked(beg, end);
+	v_time_end = clock();
+	double test =  ((double) (v_time_end - v_time) / CLOCKS_PER_SEC) * 1000000;
+	std::cout << test << std::endl;
+	print_res_arg();
+	return (0);
+}
+
+int PmergeMe::process_list()
+{
 	std::deque<int>::iterator it = list.begin(); 
 	std::deque<int>::iterator it2 = list.end();
-	chunked(beg, end);
 	chunked_list(it, it2);
-	print_list(list);
-	std::cout << "Is sorted "<< std::is_sorted(list.begin(), list.end()) << std::endl;
+	print_res_list();
+	//print_list(list);
+	//std::cout << "Is sorted "<< std::is_sorted(list.begin(), list.end()) << std::endl;
 	return (0);
+}
+
+void PmergeMe::print_res_arg()
+{
+	
+	//printf ("Time to process a range of %zu elements with std::[vector] : %f us.\n", this->arg.size() ,((float)v_time)/CLOCKS_PER_SEC);
+	//std::cout.precision(7);
+	//std::cout << std::fixed << std::setprecision(6) << "CPU time used: " << ((double) (v_time_end - v_time) / CLOCKS_PER_SEC) * 1000000 << std::endl;
+	
+}
+
+void PmergeMe::print_res_list()
+{
+
 }
 
 void PmergeMe::bubble_sort(int beg, int end)
@@ -196,20 +220,44 @@ int PmergeMe::chunked(int beg, int end)
 	return (0);
 }
 
-void PmergeMe::create_arg(int argc, char **argv)
+int PmergeMe::create_arg(int argc, char **argv)
 {
+	v_time = clock();
+	std::cout << v_time << std::endl;
+	if (parsing(argc, argv) == 1)
+		return (1);
 	for (int i = 1; i < argc; i++)
 	{
-		arg.push_back(atoi(argv[i]));
-	}	
+		long long tmp = atoll(argv[i]);
+		if (tmp > __INT_MAX__ || tmp == 0)
+		{
+			std::cout << "Error: " << tmp << " Not a valid number\n";
+			return (1);
+		}
+		arg.push_back(tmp);
+	}
+	process_arg();
+	return (0);	
 }
 
-void PmergeMe::create_list(int argc, char **argv)
+int PmergeMe::create_list(int argc, char **argv)
 {
+	d_time = clock();
+	std::cout << d_time << std::endl;
+	if (parsing(argc, argv) == 1)
+		return (1);
 	for (int i = 1; i < argc; i++)
 	{
-		list.push_back(atoi(argv[i]));
-	}	
+		long long tmp = atoll(argv[i]);
+		if (tmp > __INT_MAX__ || tmp == 0)
+		{
+			std::cout << "Error: " << tmp << " Not a valid number\n";
+			return (1);
+		}
+		list.push_back(tmp);
+	}
+	process_list();
+	return (0);
 }
 
 void	PmergeMe::print_list(std::deque<int> list)
@@ -231,4 +279,28 @@ void	PmergeMe::print_vector(std::vector<int> v)
 		std::cout << v[i] << " ";
 	}
 	std::cout << std::endl;
+}
+
+int PmergeMe::parsing(int argc, char **argv)
+{
+	std::string str;
+	int i = 1;
+	while (i < argc)
+	{
+		str += argv[i];
+		if (i < argc - 1)
+			str += ' ';
+		i++;
+	}
+	std::cout << "[" << str  << "]" << std::endl;
+	for (size_t i = 0; i < str.size(); i++)
+	{
+		//std::cout <<"is isspace " <<isspace(str[i]) <<" digit : " << isdigit(str[i]) << std::endl;
+		if (!isspace(str[i]) && !isdigit(str[i]))
+		{
+			std::cout << "Error: " << str[i] << " Not a valid char\n";
+			return (1);
+		}	
+	}
+	return (0);
 }

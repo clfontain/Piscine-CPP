@@ -55,7 +55,7 @@ int PmergeMe::binary_search(int elem, int beg, int end)
 {
 	if (end <= beg)
 	{
-		if (elem > v_sort[beg])
+		if (beg < (int)v_sort.size() && elem > v_sort[beg])
 			return (beg + 1);
 		else
 			return (beg);
@@ -72,22 +72,17 @@ int	PmergeMe::process_arg()
 {
 	int beg;
 	int end;
-	//v_time = clock();
+	print_vector(arg);
 	make_pair();
 	sort_pair();
 	beg = 0;
 	end = v_pair.size();
-	chunked2(beg, end - 1);
+	merge_sort(beg, end - 1);
 	copy_vec();
 	insertion_sort();
-	//std::cout << "FINAL\n";
-	//print_vector(arg);
-	//std::cout << "FINAL\n";
 	gettimeofday(&v_time_end, NULL);
-	long long elapsed_time = (v_time_end.tv_sec - v_time.tv_sec) * 1000000LL + (v_time_end.tv_usec - v_time.tv_usec);
+	long long elapsed_time = (v_time_end.tv_sec - v_time.tv_sec) * CLOCKS_PER_SEC + (v_time_end.tv_usec - v_time.tv_usec);
 	this->v_time_print = elapsed_time / 1000.0;
-	//double test =  ((double) (v_time_end - v_time) / CLOCKS_PER_SEC) * 1000000;
-	//std::cout << test << std::endl;
 	print_res_arg();
 	return (0);
 }
@@ -115,25 +110,6 @@ void PmergeMe::print_res_arg()
 void PmergeMe::print_res_list()
 {
 
-}
-
-void PmergeMe::bubble_sort(int beg, int end)
-{
- 	int i = beg;
-	int tmp;
-	for (; i < end; i++)
-	{
-		int j = i + 1;
-		for(;j < end; j++)
-		{
-			if (arg[j] < arg[i])
-			{
-				tmp = arg[i];
-				arg[i] = arg[j];
-				arg[j] = tmp;
-			}
-		}
-	}
 }
 
 
@@ -295,30 +271,16 @@ int PmergeMe::make_pair( void )
 	return (0);
 }
 
-int PmergeMe::chunked2(int beg, int end)
+int PmergeMe::merge_sort(int beg, int end)
 {
-	//std::cout <<" beg is : " <<beg << " end : " << end << std::endl;
+
 	if (beg >= end)
 		return (0);
 	int len = beg + (end - beg) / 2;
 	
-	chunked2(beg, len);
-	chunked2(len + 1, end);
+	merge_sort(beg, len);
+	merge_sort(len + 1, end);
 	merge(beg, len, end);
-	return (0);
-}
-
-int PmergeMe::chunked(int beg, int end)
-{
-	int len = (end + beg) / 2;
-	if (end - beg > CHUNK)
-	{
-		chunked(beg, len);
-		chunked(len, end);
-		merge(beg, len, end);
-	}
-	else
-		bubble_sort(beg, end);
 	return (0);
 }
 

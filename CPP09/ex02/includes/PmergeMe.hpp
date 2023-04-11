@@ -36,7 +36,6 @@ class PmergeMe
 		void	copy_vec();
 		int		binary_search(int elem, int beg, int end);
 		int 	insertion_sort( void);
-		void	bubble_sort(int beg, int end);
 		void	bubble_sort_list(std::deque<int>::iterator beg,std::deque<int>::iterator end);
 		int 	merge(int beg, int mid, int end);
 		int 	merge_list(std::deque<int>::iterator beg, std::deque<int>::iterator mid, std::deque<int>::iterator end);
@@ -44,7 +43,7 @@ class PmergeMe
 		void	print_vector_pair(std::vector<std::pair<int, int> > v);
 		int 	chunked_list(std::deque<int>::iterator beg, std::deque<int>::iterator end);
 		int 	parsing(int argc, char **argv);
-		int		chunked2(int beg, int end);
+		int		merge_sort(int beg, int end);
 		int 	make_pair( void );
 	private:
 		std::vector<int> arg;

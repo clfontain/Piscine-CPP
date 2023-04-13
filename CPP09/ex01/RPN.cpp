@@ -90,7 +90,7 @@ int Rpn::process(std::string str)
 				pile.pop();
 				b = pile.top();
 				pile.pop();
-				if (switch_time(a, b, str[i]) == 1)
+				if (switch_time(b, a, str[i]) == 1)
 					return (1);
 			}
 			else

@@ -28,6 +28,34 @@ void PmergeMe::copy_vec()
 	}
 }
 
+void PmergeMe::copy_list()
+{
+	for(size_t i = 0; i < l_pair.size(); i++)
+	{
+		l_sort.push_back(l_pair[i].first);
+	}
+}
+
+int PmergeMe::insertion_list_sort( void)
+{
+	for (size_t i = 0; i < l_pair.size(); i++)
+	{
+		int elem = l_pair[i].second;
+		int pos = binary_search_list(elem, 0, l_sort.size());
+		std::deque<int>::iterator it = l_sort.begin();
+		l_sort.insert(it + pos, elem);
+	}
+	if (this->v_odd != -1)
+	{
+		int elem = v_odd;
+		int pos = binary_search_list(elem, 0, l_sort.size());
+		std::deque<int>::iterator it = l_sort.begin();
+		l_sort.insert(it + pos, elem);
+	}
+	return (0);
+
+}
+
 int PmergeMe::insertion_sort( void)
 {
 	for (size_t i = 0; i < v_pair.size(); i++)
@@ -37,18 +65,32 @@ int PmergeMe::insertion_sort( void)
 		std::vector<int>::iterator it = v_sort.begin();
 		v_sort.insert(it + pos, elem);
 	}
-	if (this->odd != -1)
+	if (this->v_odd != -1)
 	{
-		std::cout << this->odd << std::endl;
-		int elem = odd;
+		int elem = v_odd;
 		int pos = binary_search(elem, 0, v_sort.size());
 		std::vector<int>::iterator it = v_sort.begin();
 		v_sort.insert(it + pos, elem);
 	}
-
-	print_vector(v_sort);
 	return (0);
 
+}
+
+int PmergeMe::binary_search_list(int elem, int beg, int end)
+{
+	if (end <= beg)
+	{
+		if (beg < (int)l_sort.size() && elem > l_sort[beg])
+			return (beg + 1);
+		else
+			return (beg);
+	}
+	int mid = (beg + end) / 2;
+	if (elem == l_sort[mid])
+		return (mid + 1);
+	 if (elem > l_sort[mid])
+		return (binary_search_list(elem, mid + 1, end));
+	return binary_search_list(elem, beg,mid - 1);
 }
 
 int PmergeMe::binary_search(int elem, int beg, int end)
@@ -70,46 +112,60 @@ int PmergeMe::binary_search(int elem, int beg, int end)
 
 int	PmergeMe::process_arg()
 {
-	int beg;
-	int end;
-	print_vector(arg);
 	make_pair();
 	sort_pair();
-	beg = 0;
-	end = v_pair.size();
-	merge_sort(beg, end - 1);
+	int end = v_pair.size();
+	merge_sort(0, end - 1);
 	copy_vec();
 	insertion_sort();
+
+
 	gettimeofday(&v_time_end, NULL);
-	long long elapsed_time = (v_time_end.tv_sec - v_time.tv_sec) * CLOCKS_PER_SEC + (v_time_end.tv_usec - v_time.tv_usec);
+	long long elapsed_time = (v_time_end.tv_sec - v_time.tv_sec) * 1000000LL + (v_time_end.tv_usec - v_time.tv_usec);
 	this->v_time_print = elapsed_time / 1000.0;
 	print_res_arg();
+
+	//std::cout << "is sorted ? " << std::is_sorted(v_sort.begin(), v_sort.end()) << std::endl;
 	return (0);
 }
 
 int PmergeMe::process_list()
 {
-	std::deque<int>::iterator it = list.begin(); 
-	std::deque<int>::iterator it2 = list.end();
-	chunked_list(it, it2);
+	make_pair_list();
+	sort_pair_list();
+	std::deque<std::pair<int, int> >::iterator it = l_pair.begin(); 
+	std::deque<std::pair<int, int> >::iterator it2 = l_pair.begin();
+	std::advance(it2, l_pair.size() - 1);
+	merge_sort_list(it, it2);
+	copy_list();
+	insertion_list_sort();
+
+
+	gettimeofday(&l_time_end, NULL);
+	long long elapsed_time = (l_time_end.tv_sec - l_time.tv_sec) * 1000000LL + (l_time_end.tv_usec - l_time.tv_usec);
+	this->l_time_print = elapsed_time / 1000.0;
 	print_res_list();
-	//print_list(list);
-	//std::cout << "Is sorted "<< std::is_sorted(list.begin(), list.end()) << std::endl;
+
+	//std::cout << "is sorted ? " << std::is_sorted(l_sort.begin(), l_sort.end()) << std::endl;
 	return (0);
 }
 
 void PmergeMe::print_res_arg()
 {
-	
-	//printf ("Time to process a range of %zu elements with std::[vector] : %f us.\n", this->v_sort.size() ,((float)v_time)/CLOCKS_PER_SEC);
-	//std::cout.precision(7);
-	std::cout << std::fixed << std::setprecision(6)<< "CPU time used: " << this->v_time_print<< std::endl;
-	
+	std::cout << "Before:  ";
+	print_vector(arg);
+	std::cout << "After:   ";
+	print_vector(v_sort);
+	std::cout << std::fixed << std::setprecision(6)<< "Time to process a range of "<< this->arg.size() << " elements with std::[vector] : " << this->v_time_print << " us."<< std::endl;
 }
 
 void PmergeMe::print_res_list()
 {
-
+	std::cout << "Before:  ";
+	print_list(list);
+	std::cout << "After:   ";
+	print_list(l_sort);
+	std::cout << std::fixed << std::setprecision(6)<< "Time to process a range of "<< this->list.size() << " elements with std::[deque] : " << this->l_time_print << " us."<< std::endl;
 }
 
 
@@ -153,88 +209,90 @@ int PmergeMe::merge(int beg, int mid, int end)
 	return (0);
 }
 
-void PmergeMe::bubble_sort_list(std::deque<int>::iterator beg, std::deque<int>::iterator end)
-{
-	std::deque<int>::iterator it;
-	std::deque<int>::iterator it2;
-	
-	int swap;
-	it = beg;
-	for (; it != end; it++)
-	{
-		it2 = it;
-		for(; it2 != end; it2++)
-		{
-			if (*it2 < *it)
-			{
-				swap = *it;
-				*it = *it2;
-				*it2 = swap;
-			}
-		}
-	}
-}
 
-int 	PmergeMe::merge_list(std::deque<int>::iterator beg, std::deque<int>::iterator mid, std::deque<int>::iterator end)
+int 	PmergeMe::merge_list(int beg, int mid, int end)
 {
-	std::deque<int> tmp;
-	std::deque<int>::iterator it = beg;
-	std::deque<int>::iterator it2 = mid;
-	//print_list(list);
-	while (it != mid && it2 != end)
+	std::deque<int> l_beg;
+	std::deque<int> l_end;
+	for (int i = 0; i < (mid - beg + 1); i++)
+		l_beg.push_back(l_pair[beg + i].first);
+	for (int j = 0; j < (end - mid); j++)
+		l_end.push_back(l_pair[mid + 1 + j].first);
+	int i = 0;
+	int j = 0;
+	int k = beg;
+	while (i < (mid - beg + 1) && j < (end - mid))
 	{
-		if (*it < *it2)
+		if (l_beg[i] <= l_end[j])
 		{
-			tmp.push_back(*it);
-			it++;
+			l_pair[k].first = l_beg[i];
+			i++;
 		}
-		else
+		else 
 		{
-			tmp.push_back(*it2);
-			it2++;
+			l_pair[k].first = l_end[j];
+			j++;
 		}
+		k++;
 	}
-	while (it != mid)
+	while (i < (mid - beg + 1))
 	{
-		tmp.push_back(*it);
-			it++;
+		l_pair[k].first = l_beg[i];
+		i++;
+		k++;
 	}
-	while (it2 != end)
+	while (j < (end - mid))
 	{
-		tmp.push_back(*it2);
-			it2++;
+		l_pair[k].first = l_end[j];
+		j++;
+		k++;
 	}
-	it = beg;
-	it2 = tmp.begin();
-	while (it != end)
-	{
-		*it = *it2;
-		it++;
-		it2++;
-	}
-
-	//print_list(list);
-	//std::cout << "Is sorted "<< std::is_sorted(tmp.begin(), tmp.end()) << std::endl;
 	return (0);
 }
 
-int PmergeMe::chunked_list(std::deque<int>::iterator beg, std::deque<int>::iterator end)
+void PmergeMe::sort_pair_list( void )
 {
-	int len = std::distance(beg, end);
-	//std::cout << "chunked_list : len = " << len << "\n";
-	if (len > CHUNK)
+	int tmp;
+	for (size_t i = 0; i < l_pair.size(); i++)
 	{
-		std::deque<int>::iterator mid;
-		mid = beg;
-		std::advance(mid, (std::distance(beg, end) / 2));
-		chunked_list(beg, mid);
-		chunked_list(mid, end);
-		merge_list(beg, mid, end);
+		if (l_pair[i].first < l_pair[i].second)
+		{
+			tmp = l_pair[i].first;
+			l_pair[i].first = l_pair[i].second;
+			l_pair[i].second = tmp;
+		}	
 	}
-	else
+}
+
+int PmergeMe::make_pair_list( void )
+{
+	this->l_odd = -1;
+	size_t size = list.size();
+	if (size % 2 != 0)
 	{
-		bubble_sort_list(beg, end);
-	}
+		size--;
+		l_odd = list[size];
+	}	
+	for (size_t i = 0; i < size; i+= 2)
+		l_pair.push_back(std::pair<int, int> (list[i], list[i + 1]));
+	return (0);
+}
+
+int PmergeMe::merge_sort_list(std::deque<std::pair<int, int> >::iterator beg, std::deque<std::pair<int, int> >::iterator end)
+{
+	int first, last;
+
+	first = std::distance(l_pair.begin(), beg);
+	last = std::distance(l_pair.begin(), end);
+	int len = first + (last - first) / 2;
+	if (beg >= end)
+		return (0);
+	std::deque<std::pair<int, int> >::iterator mid = l_pair.begin();
+	std::advance(mid, len);
+	merge_sort_list(beg, mid);
+	std::advance(mid, 1);
+	merge_sort_list(mid, end);
+	merge_list(first, len, last);
 	return (0);
 }
 
@@ -250,22 +308,18 @@ void PmergeMe::sort_pair( void )
 			v_pair[i].first = v_pair[i].second;
 			v_pair[i].second = tmp;
 		}	
-		//std::cout<< "A : " << v_pair[i].first << " B : " << v_pair[i].second << " ";
 	}
 }
 
 int PmergeMe::make_pair( void )
 {
-	this->odd = -1;
+	this->v_odd = -1;
 	size_t size = arg.size();
 	if (size % 2 != 0)
 	{
 		size--;
-		std::cout << size <<" size : "<< arg[size] << std::endl;
-		odd = arg[size];
-		std::cout << odd << std::endl;
+		v_odd = arg[size];
 	}	
-	//std::cout <<" arg size : "<< size << std::endl;
 	for (size_t i = 0; i < size; i+= 2)
 		v_pair.push_back(std::pair<int, int> (arg[i], arg[i + 1]));
 	return (0);
@@ -288,7 +342,6 @@ int PmergeMe::create_arg(int argc, char **argv)
 {
 	bool is_sorted = true;
 	gettimeofday(&v_time, NULL);
-	//std::cout << v_time << std::endl;
 	if (parsing(argc, argv) == 1)
 		return (1);
 	for (int i = 1; i < argc; i++)
@@ -317,10 +370,8 @@ int PmergeMe::create_arg(int argc, char **argv)
 
 int PmergeMe::create_list(int argc, char **argv)
 {
-	(void)argc;
-	(void)argv;
-	d_time = clock();/*
-	//std::cout << d_time << std::endl;
+
+	gettimeofday(&l_time, NULL);
 	if (parsing(argc, argv) == 1)
 		return (1);
 	for (int i = 1; i < argc; i++)
@@ -333,7 +384,7 @@ int PmergeMe::create_list(int argc, char **argv)
 		}
 		list.push_back(tmp);
 	}
-	process_list();*/
+	process_list();
 	return (0);
 }
 
@@ -341,20 +392,33 @@ void	PmergeMe::print_list(std::deque<int> list)
 {
 	std::deque<int>::iterator it;
 
-	for (it = list.begin(); it != list.end(); it++)
+	for (it = list.begin(); it != list.end() && std::distance(list.begin(), it) < 4; it++)
 	{
 		std::cout << *it << " ";
 	}
+	if (list.size() > 4)
+		std::cout << "[...]";
 	std::cout << std::endl;
 }
 
 
 void	PmergeMe::print_vector(std::vector<int> v)
 {
+	for (size_t i = 0; i < v.size() && i < 4; i++)
+	{
+		std::cout<< v[i] << " ";
+	}
+	if (v.size() > 4)
+		std::cout << "[...]";
+	std::cout << std::endl;
+}
+
+void	PmergeMe::print_list_pair(std::deque<std::pair<int, int> > v)
+{
 	std::cout << "[";
 	for (size_t i = 0; i < v.size(); i++)
 	{
-		std::cout<< v[i] << " ";
+		std::cout<< "A : " << v[i].first << " B : " << v[i].second << " ";
 	}
 	std::cout << "]" << std::endl;
 }
@@ -380,10 +444,8 @@ int PmergeMe::parsing(int argc, char **argv)
 			str += ' ';
 		i++;
 	}
-	//std::cout << "[" << str  << "]" << std::endl;
 	for (size_t i = 0; i < str.size(); i++)
 	{
-		//std::cout <<"is isspace " <<isspace(str[i]) <<" digit : " << isdigit(str[i]) << std::endl;
 		if (!isspace(str[i]) && !isdigit(str[i]))
 		{
 			std::cout << "Error: " << str[i] << " Not a valid char\n";
